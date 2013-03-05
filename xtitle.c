@@ -111,13 +111,9 @@ void setup(void)
 
 void output_title(xcb_window_t win, char *format, char *title, size_t len)
 {
-    char tmp[MAXLEN] = {0};
-    strncpy(tmp, title, sizeof(tmp));
     get_window_title(win, title, len);
-    if (strncmp(title, tmp, len) != 0) {
-        printf(format == NULL ? FORMAT : format, title);
-        fflush(stdout);
-    }
+    printf(format == NULL ? FORMAT : format, title);
+    fflush(stdout);
 }
 
 bool title_changed(xcb_generic_event_t *evt, xcb_window_t *win, xcb_window_t *last_win)
