@@ -113,6 +113,7 @@ void output_title(xcb_window_t win, char *format, char *title, size_t len)
 {
     get_window_title(win, title, len);
     printf(format == NULL ? FORMAT : format, title);
+    printf("\n");
     fflush(stdout);
 }
 

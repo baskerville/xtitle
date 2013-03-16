@@ -1,7 +1,7 @@
 #ifndef _XTITLE_H
 #define _XTITLE_H
 
-#define FORMAT   "%s\n"
+#define FORMAT   "%s"
 
 xcb_connection_t *dpy;
 xcb_window_t root;
