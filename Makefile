@@ -10,14 +10,15 @@ PREFIX    ?= /usr/local
 BINPREFIX = $(PREFIX)/bin
 
 SRC = xtitle.c helpers.c
-HDR = $(SRC:.c=.h)
 OBJ = $(SRC:.c=.o)
 
 all: CFLAGS += -Os
 all: LDFLAGS += -s
 all: xtitle
 
-$(OBJ): $(SRC) $(HDR) Makefile
+include Incgraph
+
+$(OBJ): Makefile
 
 .c.o:
 	$(CC) $(CFLAGS) -c -o $@ $<

@@ -1,0 +1,2 @@
+helpers.o: helpers.c helpers.h
+xtitle.o: xtitle.c helpers.h xtitle.h
