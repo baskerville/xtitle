@@ -25,9 +25,6 @@ $(OBJ): $(SRC) $(HDR) Makefile
 xtitle: $(OBJ)
 	$(CC) -o $@ $(OBJ) $(LDFLAGS) $(LIBS)
 
-clean:
-	rm -f $(OBJ) xtitle
-
 install:
 	mkdir -p "$(DESTDIR)$(BINPREFIX)"
 	cp xtitle "$(DESTDIR)$(BINPREFIX)"
@@ -35,5 +32,8 @@ install:
 
 uninstall:
 	rm -f $(DESTDIR)$(BINPREFIX)/xtitle
+
+clean:
+	rm -f $(OBJ) xtitle
 
 .PHONY: all clean install uninstall
