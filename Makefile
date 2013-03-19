@@ -16,7 +16,7 @@ all: CFLAGS += -Os
 all: LDFLAGS += -s
 all: xtitle
 
-include Incgraph
+include Sourcedeps
 
 $(OBJ): Makefile
 
