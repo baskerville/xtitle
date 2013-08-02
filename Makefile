@@ -9,7 +9,7 @@ LDFLAGS += -L$(PREFIX)/lib
 PREFIX    ?= /usr/local
 BINPREFIX  = $(PREFIX)/bin
 
-SRC = xtitle.c helpers.c
+SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
 
 all: CFLAGS += -Os
