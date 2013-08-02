@@ -154,20 +154,21 @@ void get_window_title(xcb_window_t win, char *title, size_t len) {
     xcb_ewmh_get_utf8_strings_reply_t ewmh_txt_prop;
     xcb_icccm_get_text_property_reply_t icccm_txt_prop;
     ewmh_txt_prop.strings = icccm_txt_prop.name = NULL;
+    title[0] = '\0';
     if (win != XCB_NONE && (xcb_ewmh_get_wm_name_reply(ewmh, xcb_ewmh_get_wm_name(ewmh, win), &ewmh_txt_prop, NULL) == 1 || xcb_icccm_get_wm_name_reply(dpy, xcb_icccm_get_wm_name(dpy, win), &icccm_txt_prop, NULL) == 1)) {
-        char *src;
-        size_t title_len;
+        char *src = NULL;
+        size_t title_len = 0;
         if (ewmh_txt_prop.strings != NULL) {
             src = ewmh_txt_prop.strings;
             title_len = MIN(len, ewmh_txt_prop.strings_len);
-        } else {
+        } else if (icccm_txt_prop.name != NULL) {
             src = icccm_txt_prop.name;
             title_len = MIN(len, icccm_txt_prop.name_len);
         }
-        strncpy(title, src, title_len);
-        title[title_len] = '\0';
-    } else {
-        title[0] = '\0';
+        if (src != NULL) {
+            strncpy(title, src, title_len);
+            title[title_len] = '\0';
+        }
     }
 }
 
