@@ -1,6 +1,6 @@
 VERSION = 0.1
 
-CC       = gcc
+CC      ?= gcc
 LIBS     = -lm -lxcb -lxcb-icccm -lxcb-ewmh
 CFLAGS  += -std=c99 -pedantic -Wall -Wextra -I$(PREFIX)/include
 CFLAGS  += -D_POSIX_C_SOURCE=200112L -DVERSION=\"$(VERSION)\"
