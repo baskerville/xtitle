@@ -170,6 +170,10 @@ void get_window_title(xcb_window_t win, char *title, size_t len) {
             title[title_len] = '\0';
         }
     }
+    if (ewmh_txt_prop.strings != NULL)
+        xcb_ewmh_get_utf8_strings_reply_wipe(&ewmh_txt_prop);
+    if (icccm_txt_prop.name != NULL)
+        xcb_icccm_get_text_property_reply_wipe(&icccm_txt_prop);
 }
 
 void hold(int sig)
