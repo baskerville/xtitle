@@ -16,13 +16,14 @@
 int main(int argc, char *argv[])
 {
     bool snoop = false;
+    bool escaped = false;
     char *format = NULL;
     char opt;
 
-    while ((opt = getopt(argc, argv, "hvsf:")) != -1) {
+    while ((opt = getopt(argc, argv, "hvsef:")) != -1) {
         switch (opt) {
             case 'h':
-                printf("xtitle [-h|-v|-s|-f FORMAT] [WID ...]\n");
+                printf("xtitle [-h|-v|-s|-e|-f FORMAT] [WID ...]\n");
                 return EXIT_SUCCESS;
                 break;
             case 'v':
@@ -31,6 +32,9 @@ int main(int argc, char *argv[])
                 break;
             case 's':
                 snoop = true;
+                break;
+            case 'e':
+                escaped = true;
                 break;
             case 'f':
                 format = optarg;
@@ -53,12 +57,12 @@ int main(int argc, char *argv[])
             if (errno != 0 || *end != '\0')
                 warn("Invalid window ID: '%s'.\n", args[i]);
             else
-                output_title(wid, format, title, sizeof(title));
+                output_title(wid, format, title, sizeof(title), escaped);
         }
     } else {
         xcb_window_t win = XCB_NONE;
         if (get_active_window(&win))
-            output_title(win, format, title, sizeof(title));
+            output_title(win, format, title, sizeof(title), escaped);
         if (snoop) {
             signal(SIGINT, hold);
             signal(SIGHUP, hold);
@@ -77,7 +81,7 @@ int main(int argc, char *argv[])
                     xcb_generic_event_t *evt;
                     while ((evt = xcb_poll_for_event(dpy)) != NULL) {
                         if (title_changed(evt, &win, &last_win))
-                            output_title(win, format, title, sizeof(title));
+                            output_title(win, format, title, sizeof(title), escaped);
                         free(evt);
                     }
                 }
@@ -109,10 +113,35 @@ void setup(void)
         err("Can't initialize EWMH atoms.\n");
 }
 
-void output_title(xcb_window_t win, char *format, char *title, size_t len)
+char* expand_escapes(const char *src)
+{
+    char *dest = (char *)malloc(2 * strlen(src) + 1);
+    char *start = dest;
+    char c;
+    while ((c = *(src++))) {
+        if (c == '\'' || c == '\"') {
+            *(dest++) = '\\';
+            *(dest++) = '\"';
+        }
+        else if (c == '\\') {
+            *(dest++) = '\\';
+            *(dest++) = '\\';
+        }
+        else *(dest++) = c;
+    }
+    *dest = '\0';
+    return start;
+}
+
+void output_title(xcb_window_t win, char *format, char *title, size_t len, bool escaped)
 {
     get_window_title(win, title, len);
-    printf(format == NULL ? FORMAT : format, title);
+    if (escaped) {
+        char *out = expand_escapes(title);
+        printf(format == NULL ? FORMAT : format, out);
+        free(out);
+    }
+    else printf(format == NULL ? FORMAT : format, title);
     printf("\n");
     fflush(stdout);
 }
