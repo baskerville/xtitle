@@ -2,7 +2,7 @@
 If arguments are given, outputs the title of each arguments, otherwise outputs the title of the active window and continue to output it as it changes if the *snoop* mode is on.
 
 # Synopsis
-    xtitle [-h|-v|-s|-e|-f FORMAT] [WID ...]
+	xtitle [-h|-v|-s|-e|-f FORMAT] [WID ...]
 
 # Options
 - `-h` — Print the synopsis to standard output and exit.
@@ -12,7 +12,7 @@ If arguments are given, outputs the title of each arguments, otherwise outputs t
 - `-f FORMAT` — Use the given `printf` format.
 
 # Example usage with JSON
-    xtitle -s -e -f '[{"full_text":"%s","color":"#FFA500","separator":false}]'
+	xtitle -s -e -f '[{"full_text":"%s","color":"#FFA500","separator":false}]'
 Escape and snoop mode work well within i3 and [i3cat][1].
 
 [1]: https://github.com/vincent-petithory/i3cat
