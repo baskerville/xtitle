@@ -8,11 +8,5 @@ If arguments are given, outputs the title of each arguments, otherwise outputs t
 - `-h` — Print the synopsis to standard output and exit.
 - `-v` — Print the version to standard output and exit.
 - `-s` — Activate the *snoop* mode.
-- `-e` — Activate the *escape* mode. Prints \" instead of " or ', \\\\ instead of \\.
+- `-e` — Escape the following characters: ', " and \\.
 - `-f FORMAT` — Use the given `printf` format.
-
-# Example usage with JSON
-	xtitle -s -e -f '[{"full_text":"%s","color":"#FFA500","separator":false}]'
-Escape and snoop mode work well within i3 and [i3cat][1].
-
-[1]: https://github.com/vincent-petithory/i3cat
