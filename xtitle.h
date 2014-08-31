@@ -13,7 +13,7 @@ void hold(int);
 void setup(void);
 void watch(xcb_window_t, bool);
 char* expand_escapes(const char *);
-void output_title(xcb_window_t, char *, char *, size_t, bool);
+void output_title(xcb_window_t, char *, char *, size_t, bool, int);
 bool title_changed(xcb_generic_event_t *, xcb_window_t *, xcb_window_t *);
 bool get_active_window(xcb_window_t *);
 void get_window_title(xcb_window_t, char *, size_t);
