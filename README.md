@@ -10,4 +10,4 @@ If arguments are given, outputs the title of each arguments, otherwise outputs t
 - `-s` — Activate the *snoop* mode.
 - `-e` — Escape the following characters: ', " and \\.
 - `-f FORMAT` — Use the given `printf` format.
-- `-t NUMBER` — Truncate the title after *NUMBER* characters.
+- `-t NUMBER` — Truncate the title after |*NUMBER*| characters starting at the first (or the last if *NUMBER* is negative) character.

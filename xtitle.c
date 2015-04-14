@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 	bool snoop = false;
 	bool escaped = false;
 	char *format = NULL;
-	int truncate = -1;
+	int truncate = 0;
 	char opt;
 
 	while ((opt = getopt(argc, argv, "hvsef:t:")) != -1) {
@@ -134,13 +134,25 @@ char* expand_escapes(const char *src)
 void output_title(xcb_window_t win, char *format, char *title, size_t len, bool escaped, int truncate)
 {
 	get_window_title(win, title, len);
-	if (truncate > 0 && strlen(title) > (size_t)truncate ) {
-		if (truncate > 3) {
-			title[truncate-3] = '.';
-			title[truncate-2] = '.';
-			title[truncate-1] = '.';
+	if (truncate) {
+		unsigned int n = abs(truncate);
+		if (strlen(title) > (size_t)n) {
+			if (truncate > 0) {
+				if (n > 3) {
+					for (int i = 1; i <= 3; i++) {
+						title[truncate-i] = '.';
+					}
+				}
+				title[truncate] = '\0';
+			} else {
+				title = title + strlen(title) + truncate;
+				if (n > 3) {
+					for (int i = 0; i <= 2; i++) {
+						title[i] = '.';
+					}
+				}
+			}
 		}
-		title[truncate] = '\0';
 	}
 	if (escaped) {
 		char *out = expand_escapes(title);
