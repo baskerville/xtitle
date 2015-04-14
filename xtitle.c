@@ -158,8 +158,9 @@ void output_title(xcb_window_t win, char *format, char *title, size_t len, bool 
 		char *out = expand_escapes(title);
 		printf(format == NULL ? FORMAT : format, out);
 		free(out);
+	} else {
+		printf(format == NULL ? FORMAT : format, title);
 	}
-	else printf(format == NULL ? FORMAT : format, title);
 	printf("\n");
 	fflush(stdout);
 }
