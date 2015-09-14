@@ -7,7 +7,7 @@ xcb_connection_t *dpy;
 xcb_window_t root;
 xcb_ewmh_connection_t *ewmh;
 int default_screen;
-bool running;
+bool running, visible;
 
 void hold(int);
 void setup(void);

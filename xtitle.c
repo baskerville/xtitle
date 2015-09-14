@@ -17,14 +17,15 @@ int main(int argc, char *argv[])
 {
 	bool snoop = false;
 	bool escaped = false;
+	visible = false;
 	char *format = NULL;
 	int truncate = 0;
 	char opt;
 
-	while ((opt = getopt(argc, argv, "hvsef:t:")) != -1) {
+	while ((opt = getopt(argc, argv, "hvseif:t:")) != -1) {
 		switch (opt) {
 			case 'h':
-				printf("xtitle [-h|-v|-s|-e|-f FORMAT|-t NUMBER] [WID ...]\n");
+				printf("xtitle [-h|-v|-s|-e|-i|-f FORMAT|-t NUMBER] [WID ...]\n");
 				return EXIT_SUCCESS;
 				break;
 			case 'v':
@@ -36,6 +37,9 @@ int main(int argc, char *argv[])
 				break;
 			case 'e':
 				escaped = true;
+				break;
+			case 'i':
+				visible = true;
 				break;
 			case 'f':
 				format = optarg;
@@ -178,7 +182,7 @@ bool title_changed(xcb_generic_event_t *evt, xcb_window_t *win, xcb_window_t *la
 				*win = *last_win = XCB_NONE;
 			}
 			return true;
-		} else if (*win != XCB_NONE && pne->window == *win && (pne->atom == ewmh->_NET_WM_NAME || pne->atom == XCB_ATOM_WM_NAME)) {
+		} else if (*win != XCB_NONE && pne->window == *win && ((visible && pne->atom == ewmh->_NET_WM_VISIBLE_NAME) || pne->atom == ewmh->_NET_WM_NAME || pne->atom == XCB_ATOM_WM_NAME)) {
 			return true;
 		}
 	}
@@ -203,7 +207,7 @@ void get_window_title(xcb_window_t win, char *title, size_t len) {
 	xcb_icccm_get_text_property_reply_t icccm_txt_prop;
 	ewmh_txt_prop.strings = icccm_txt_prop.name = NULL;
 	title[0] = '\0';
-	if (win != XCB_NONE && (xcb_ewmh_get_wm_name_reply(ewmh, xcb_ewmh_get_wm_name(ewmh, win), &ewmh_txt_prop, NULL) == 1 || xcb_icccm_get_wm_name_reply(dpy, xcb_icccm_get_wm_name(dpy, win), &icccm_txt_prop, NULL) == 1)) {
+	if (win != XCB_NONE && ((visible && xcb_ewmh_get_wm_visible_name_reply(ewmh, xcb_ewmh_get_wm_visible_name(ewmh, win), &ewmh_txt_prop, NULL) == 1) || xcb_ewmh_get_wm_name_reply(ewmh, xcb_ewmh_get_wm_name(ewmh, win), &ewmh_txt_prop, NULL) == 1 || xcb_icccm_get_wm_name_reply(dpy, xcb_icccm_get_wm_name(dpy, win), &icccm_txt_prop, NULL) == 1)) {
 		char *src = NULL;
 		size_t title_len = 0;
 		if (ewmh_txt_prop.strings != NULL) {
