@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	visible = false;
 	char *format = NULL;
 	int truncate = 0;
-	char opt;
+	int opt;
 
 	while ((opt = getopt(argc, argv, "hvseif:t:")) != -1) {
 		switch (opt) {
