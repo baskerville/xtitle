@@ -1,7 +1,10 @@
 #ifndef _XTITLE_H
 #define _XTITLE_H
 
-#define FORMAT   "%s\n"
+#define MAXLEN            256
+#define MIN(A, B)         ((A) < (B) ? (A) : (B))
+
+#define FORMAT   L"%ls\n"
 
 xcb_connection_t *dpy;
 xcb_window_t root;
@@ -12,10 +15,10 @@ bool running, visible;
 void hold(int);
 void setup(void);
 void watch(xcb_window_t, bool);
-char* expand_escapes(const char *);
-void output_title(xcb_window_t, char *, char *, size_t, bool, int);
+wchar_t* expand_escapes(const wchar_t *);
+void output_title(xcb_window_t, wchar_t *, wchar_t *, size_t, bool, int);
 bool title_changed(xcb_generic_event_t *, xcb_window_t *, xcb_window_t *);
 bool get_active_window(xcb_window_t *);
-void get_window_title(xcb_window_t, char *, size_t);
+void get_window_title(xcb_window_t, wchar_t *, size_t);
 
 #endif
