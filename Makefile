@@ -1,40 +1,34 @@
-VERSION = 0.3
+OUT = xtitle
+VERCMD  ?= git describe 2> /dev/null
+VERSION := $(shell $(VERCMD) || cat VERSION)
 
-CC      ?= gcc
-LIBS     = -lm -lxcb -lxcb-icccm -lxcb-ewmh
-CFLAGS  += -std=c99 -pedantic -Wall -Wextra -I$(PREFIX)/include
-CFLAGS  += -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\"
-LDFLAGS += -L$(PREFIX)/lib
+CPPFLAGS += -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\"
+CFLAGS   += -std=c99 -pedantic -Wall -Wextra
+LDLIBS   := -lm -lxcb -lxcb-icccm -lxcb-ewmh
 
 PREFIX    ?= /usr/local
-BINPREFIX  = $(PREFIX)/bin
+BINPREFIX ?= $(PREFIX)/bin
 
-SRC = $(wildcard *.c)
-OBJ = $(SRC:.c=.o)
+SRC := $(wildcard *.c)
+OBJ := $(SRC:.c=.o)
 
-all: xtitle
+all: $(OUT)
 
 debug: CFLAGS += -O0 -g
-debug: xtitle
+debug: $(OUT)
 
 include Sourcedeps
 
 $(OBJ): Makefile
 
-.c.o:
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-xtitle: $(OBJ)
-	$(CC) -o $@ $(OBJ) $(LDFLAGS) $(LIBS)
-
 install:
 	mkdir -p "$(DESTDIR)$(BINPREFIX)"
-	cp -p xtitle "$(DESTDIR)$(BINPREFIX)"
+	cp -p $(OUT) "$(DESTDIR)$(BINPREFIX)"
 
 uninstall:
-	rm -f $(DESTDIR)$(BINPREFIX)/xtitle
+	rm -f "$(DESTDIR)$(BINPREFIX)"/$(OUT)
 
 clean:
-	rm -f $(OBJ) xtitle
+	rm -f $(OUT) $(OBJ)
 
-.PHONY: all clean install uninstall
+.PHONY: all debug install uninstall clean
