@@ -4,7 +4,10 @@
 #define MAXLEN            256
 #define MIN(A, B)         ((A) < (B) ? (A) : (B))
 
-#define FORMAT   L"%ls\n"
+#define FORMAT         L"%ls\n"
+/* Reference: http://www.sensi.org/~alec/locale/other/ctext.html */
+#define CT_UTF8_BEGIN   "\x1b\x25\x47"
+#define CT_UTF8_END     "\x1b\x25\x40"
 
 xcb_connection_t *dpy;
 xcb_window_t root;
