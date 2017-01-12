@@ -234,8 +234,8 @@ void get_window_title(xcb_window_t win, wchar_t *title, size_t len) {
 			title_len = MIN(len, icccm_txt_prop.name_len);
 			/* Extract UTF-8 embedded in Compound Text */
 			if (title_len > strlen(CT_UTF8_BEGIN CT_UTF8_END) &&
-				memcmp(src, CT_UTF8_BEGIN, strlen(CT_UTF8_BEGIN)) == 0 &&
-				memcmp(src + title_len - strlen(CT_UTF8_END), CT_UTF8_END, strlen(CT_UTF8_END)) == 0) {
+			    memcmp(src, CT_UTF8_BEGIN, strlen(CT_UTF8_BEGIN)) == 0 &&
+			    memcmp(src + title_len - strlen(CT_UTF8_END), CT_UTF8_END, strlen(CT_UTF8_END)) == 0) {
 				src += strlen(CT_UTF8_BEGIN);
 				title_len -= strlen(CT_UTF8_BEGIN CT_UTF8_END);
 			}
