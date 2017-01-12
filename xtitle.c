@@ -30,10 +30,12 @@ int main(int argc, char *argv[])
 		switch (opt) {
 			case 'h':
 				printf("xtitle [-h|-v|-s|-e|-i|-f FORMAT|-t NUMBER] [WID ...]\n");
+				free(format);
 				return EXIT_SUCCESS;
 				break;
 			case 'v':
 				printf("%s\n", VERSION);
+				free(format);
 				return EXIT_SUCCESS;
 				break;
 			case 's':
@@ -51,12 +53,11 @@ int main(int argc, char *argv[])
 					errx(EXIT_FAILURE, "can't decode the given format string: '%s'.", optarg);
 				}
 				wchar_t *tmp = realloc(format, sizeof(wchar_t) * format_len + 1);
-				if (format != tmp) {
-					free(format);
+				if (tmp != NULL) {
 					format = tmp;
+					mbsrtowcs(format, (const char**)&optarg, format_len, NULL);
+					format[format_len] = L'\0';
 				}
-				mbsrtowcs(format, (const char**)&optarg, format_len, NULL);
-				format[format_len] = L'\0';
 			} break;
 			case 't':
 				truncate = atoi(optarg);
@@ -119,6 +120,7 @@ int main(int argc, char *argv[])
 	xcb_ewmh_connection_wipe(ewmh);
 	free(ewmh);
 	xcb_disconnect(dpy);
+	free(format);
 	return EXIT_SUCCESS;
 }
 
