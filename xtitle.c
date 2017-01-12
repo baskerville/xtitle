@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
 					format = tmp;
 				}
 				mbsrtowcs(format, (const char**)&optarg, format_len, NULL);
+				format[format_len] = L'\0';
 			} break;
 			case 't':
 				truncate = atoi(optarg);
