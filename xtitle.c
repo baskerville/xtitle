@@ -109,6 +109,7 @@ int main(int argc, char *argv[])
 			while (running) {
 				FD_ZERO(&descriptors);
 				FD_SET(fd, &descriptors);
+				/* We do this because xcb_wait_for_event prevents us from catching signals. */
 				if (select(fd + 1, &descriptors, NULL, NULL, NULL) > 0) {
 					xcb_generic_event_t *evt;
 					while ((evt = xcb_poll_for_event(dpy)) != NULL) {
