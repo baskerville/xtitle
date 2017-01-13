@@ -112,8 +112,9 @@ int main(int argc, char *argv[])
 				if (select(fd + 1, &descriptors, NULL, NULL, NULL) > 0) {
 					xcb_generic_event_t *evt;
 					while ((evt = xcb_poll_for_event(dpy)) != NULL) {
-						if (title_changed(evt, &win, &last_win))
+						if (title_changed(evt, &win, &last_win)) {
 							output_title(win, format, title, MAXLEN, escaped, truncate);
+						}
 						free(evt);
 					}
 				}
@@ -164,8 +165,9 @@ wchar_t* expand_escapes(const wchar_t *src)
 	wchar_t *start = dest;
 	wchar_t c;
 	while ((c = *(src++))) {
-		if (c == L'\'' || c == L'\"' || c == L'\\')
+		if (c == L'\'' || c == L'\"' || c == L'\\') {
 			*(dest++) = L'\\';
+		}
 		*(dest++) = c;
 	}
 	*dest = L'\0';
@@ -227,8 +229,9 @@ bool title_changed(xcb_generic_event_t *evt, xcb_window_t *win, xcb_window_t *la
 
 void watch(xcb_window_t win, bool state)
 {
-	if (win == XCB_NONE)
+	if (win == XCB_NONE) {
 		return;
+	}
 	uint32_t value = (state ? XCB_EVENT_MASK_PROPERTY_CHANGE : XCB_EVENT_MASK_NO_EVENT);
 	xcb_change_window_attributes(dpy, win, XCB_CW_EVENT_MASK, &value);
 }
@@ -270,10 +273,12 @@ void get_window_title(xcb_window_t win, wchar_t *title, size_t len)
 			title[title_len] = L'\0';
 		}
 	}
-	if (ewmh_txt_prop.strings != NULL)
+	if (ewmh_txt_prop.strings != NULL) {
 		xcb_ewmh_get_utf8_strings_reply_wipe(&ewmh_txt_prop);
-	if (icccm_txt_prop.name != NULL)
+	}
+	if (icccm_txt_prop.name != NULL) {
 		xcb_icccm_get_text_property_reply_wipe(&icccm_txt_prop);
+	}
 }
 
 void hold(int sig)
