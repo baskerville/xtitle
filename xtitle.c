@@ -17,12 +17,20 @@
 
 int main(int argc, char *argv[])
 {
+	dpy = NULL;
+	ewmh = NULL;
+	visible = false;
+	running = true;
 	bool snoop = false;
 	bool escaped = false;
-	visible = false;
 	wchar_t *format = NULL;
+	int ret = EXIT_SUCCESS;
 	int truncate = 0;
 	int opt;
+
+	signal(SIGINT, hold);
+	signal(SIGHUP, hold);
+	signal(SIGTERM, hold);
 
 	setlocale(LC_ALL, "");
 
@@ -30,13 +38,11 @@ int main(int argc, char *argv[])
 		switch (opt) {
 			case 'h':
 				printf("xtitle [-h|-v|-s|-e|-i|-f FORMAT|-t NUMBER] [WID ...]\n");
-				free(format);
-				return EXIT_SUCCESS;
+				goto end;
 				break;
 			case 'v':
 				printf("%s\n", VERSION);
-				free(format);
-				return EXIT_SUCCESS;
+				goto end;
 				break;
 			case 's':
 				snoop = true;
@@ -50,7 +56,9 @@ int main(int argc, char *argv[])
 			case 'f': {
 				size_t format_len = mbsrtowcs(NULL, (const char**)&optarg, 0, NULL);
 				if (format_len == (size_t)-1) {
-					errx(EXIT_FAILURE, "can't decode the given format string: '%s'.", optarg);
+					warnx("can't decode the given format string: '%s'.", optarg);
+					ret = EXIT_FAILURE;
+					goto end;
 				}
 				wchar_t *tmp = realloc(format, sizeof(wchar_t) * format_len + 1);
 				if (tmp != NULL) {
@@ -68,7 +76,10 @@ int main(int argc, char *argv[])
 	int num = argc - optind;
 	char **args = argv + optind;
 
-	setup();
+	if (!setup()) {
+		ret = EXIT_FAILURE;
+		goto end;
+	}
 
 	wchar_t title[MAXLEN] = {0};
 
@@ -85,18 +96,15 @@ int main(int argc, char *argv[])
 		}
 	} else {
 		xcb_window_t win = XCB_NONE;
-		if (get_active_window(&win))
+		if (get_active_window(&win)) {
 			output_title(win, format, title, MAXLEN, escaped, truncate);
+		}
 		if (snoop) {
-			signal(SIGINT, hold);
-			signal(SIGHUP, hold);
-			signal(SIGTERM, hold);
 			watch(root, true);
 			watch(win, true);
 			xcb_window_t last_win = XCB_NONE;
 			fd_set descriptors;
 			int fd = xcb_get_file_descriptor(dpy);
-			running = true;
 			xcb_flush(dpy);
 			while (running) {
 				FD_ZERO(&descriptors);
@@ -117,28 +125,37 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	xcb_ewmh_connection_wipe(ewmh);
+end:
+	if (ewmh != NULL) {
+		xcb_ewmh_connection_wipe(ewmh);
+	}
+	if (dpy != NULL) {
+		xcb_disconnect(dpy);
+	}
 	free(ewmh);
-	xcb_disconnect(dpy);
 	free(format);
-	return EXIT_SUCCESS;
+	return ret;
 }
 
-void setup(void)
+bool setup(void)
 {
 	dpy = xcb_connect(NULL, &default_screen);
 	if (xcb_connection_has_error(dpy)) {
-		errx(EXIT_FAILURE, "can't open display.");
+		warnx("can't open display.");
+		return false;
 	}
 	xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(dpy)).data;
 	if (screen == NULL) {
-		errx(EXIT_FAILURE, "can't acquire screen.");
+		warnx("can't acquire screen.");
+		return false;
 	}
 	root = screen->root;
 	ewmh = malloc(sizeof(xcb_ewmh_connection_t));
 	if (xcb_ewmh_init_atoms_replies(ewmh, xcb_ewmh_init_atoms(dpy, ewmh), NULL) == 0) {
-		errx(EXIT_FAILURE, "can't initialize EWMH atoms.");
+		warnx("can't initialize EWMH atoms.");
+		return false;
 	}
+	return true;
 }
 
 wchar_t* expand_escapes(const wchar_t *src)
@@ -221,7 +238,8 @@ bool get_active_window(xcb_window_t *win)
 	return (xcb_ewmh_get_active_window_reply(ewmh, xcb_ewmh_get_active_window(ewmh, default_screen), win, NULL) == 1);
 }
 
-void get_window_title(xcb_window_t win, wchar_t *title, size_t len) {
+void get_window_title(xcb_window_t win, wchar_t *title, size_t len)
+{
 	xcb_ewmh_get_utf8_strings_reply_t ewmh_txt_prop;
 	xcb_icccm_get_text_property_reply_t icccm_txt_prop;
 	ewmh_txt_prop.strings = icccm_txt_prop.name = NULL;
@@ -260,6 +278,7 @@ void get_window_title(xcb_window_t win, wchar_t *title, size_t len) {
 
 void hold(int sig)
 {
-	if (sig == SIGHUP || sig == SIGINT || sig == SIGTERM)
+	if (sig == SIGHUP || sig == SIGINT || sig == SIGTERM) {
 		running = false;
+	}
 }
