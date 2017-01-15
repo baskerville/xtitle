@@ -200,12 +200,43 @@ void output_title(xcb_window_t win, wchar_t *format, wchar_t *title, size_t len,
 	}
 	if (escaped) {
 		wchar_t *out = expand_escapes(title);
-		wprintf(format == NULL ? FORMAT : format, out);
+		print_title(format, out);
 		free(out);
 	} else {
-		wprintf(format == NULL ? FORMAT : format, title);
+		print_title(format, title);
 	}
 	fflush(stdout);
+}
+
+void print_title(wchar_t *format, wchar_t *title)
+{
+	if (format == NULL) {
+		wprintf(FORMAT, title);
+	} else {
+		wchar_t *spec = NULL;
+		size_t len = wcslen(format);
+		for (size_t i = 0; i < len; i++) {
+			wchar_t cur = format[i];
+			if (spec == NULL) {
+				if (cur == L'%' || cur == L'\\') {
+					spec = format + i;
+				} else {
+					wprintf(L"%lc", cur);
+				}
+			} else {
+				if (*spec == L'%' && cur == L's') {
+					wprintf(L"%ls", title);
+				} else if (*spec == L'\\' && cur == L'n') {
+					wprintf(L"\n");
+				} else if (*spec == cur) {
+					wprintf(L"%lc", cur);
+				} else {
+					wprintf(L"%lc%lc", *spec, cur);
+				}
+				spec = NULL;
+			}
+		}
+	}
 }
 
 bool title_changed(xcb_generic_event_t *evt, xcb_window_t *win, xcb_window_t *last_win)
