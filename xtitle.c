@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 					ret = EXIT_FAILURE;
 					goto end;
 				}
-				wchar_t *tmp = realloc(format, sizeof(wchar_t) * format_len + 1);
+				wchar_t *tmp = realloc(format, (format_len + 1) * sizeof(wchar_t));
 				if (tmp != NULL) {
 					format = tmp;
 					mbsrtowcs(format, (const char**)&optarg, format_len, NULL);
@@ -162,7 +162,7 @@ bool setup(void)
 
 wchar_t* expand_escapes(const wchar_t *src)
 {
-	wchar_t *dest = malloc(sizeof(wchar_t) * 2 * wcslen(src) + 1);
+	wchar_t *dest = malloc((2 * wcslen(src) + 1) * sizeof(wchar_t));
 	wchar_t *start = dest;
 	wchar_t c;
 	while ((c = *(src++))) {
