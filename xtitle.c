@@ -81,8 +81,6 @@ int main(int argc, char *argv[])
 		goto end;
 	}
 
-	wchar_t title[MAXLEN] = {0};
-
 	if (num > 0) {
 		char *end;
 		for (int i = 0; i < num; i++) {
@@ -91,13 +89,13 @@ int main(int argc, char *argv[])
 			if (errno != 0 || *end != '\0') {
 				warnx("invalid window ID: '%s'.", args[i]);
 			} else {
-				output_title(wid, format, title, MAXLEN, escaped, truncate);
+				output_title(wid, format, escaped, truncate);
 			}
 		}
 	} else {
 		xcb_window_t win = XCB_NONE;
 		if (get_active_window(&win)) {
-			output_title(win, format, title, MAXLEN, escaped, truncate);
+			output_title(win, format, escaped, truncate);
 		}
 		if (snoop) {
 			watch(root, true);
@@ -114,7 +112,7 @@ int main(int argc, char *argv[])
 					xcb_generic_event_t *evt;
 					while ((evt = xcb_poll_for_event(dpy)) != NULL) {
 						if (title_changed(evt, &win, &last_win)) {
-							output_title(win, format, title, MAXLEN, escaped, truncate);
+							output_title(win, format, escaped, truncate);
 						}
 						free(evt);
 					}
@@ -175,9 +173,13 @@ wchar_t* expand_escapes(const wchar_t *src)
 	return start;
 }
 
-void output_title(xcb_window_t win, wchar_t *format, wchar_t *title, size_t len, bool escaped, int truncate)
+void output_title(xcb_window_t win, wchar_t *format, bool escaped, int truncate)
 {
-	get_window_title(win, title, len);
+	wchar_t *title = get_window_title(win);
+	if (title == NULL) {
+		wprintf(FORMAT, L"");
+		goto end;
+	}
 	if (truncate) {
 		unsigned int n = abs(truncate);
 		if (wcslen(title) > (size_t)n) {
@@ -205,7 +207,9 @@ void output_title(xcb_window_t win, wchar_t *format, wchar_t *title, size_t len,
 	} else {
 		print_title(format, title);
 	}
+end:
 	fflush(stdout);
+	free(title);
 }
 
 void print_title(wchar_t *format, wchar_t *title)
@@ -273,21 +277,21 @@ bool get_active_window(xcb_window_t *win)
 	return (xcb_ewmh_get_active_window_reply(ewmh, xcb_ewmh_get_active_window(ewmh, default_screen), win, NULL) == 1);
 }
 
-void get_window_title(xcb_window_t win, wchar_t *title, size_t len)
+wchar_t *get_window_title(xcb_window_t win)
 {
 	xcb_ewmh_get_utf8_strings_reply_t ewmh_txt_prop;
 	xcb_icccm_get_text_property_reply_t icccm_txt_prop;
 	ewmh_txt_prop.strings = icccm_txt_prop.name = NULL;
-	title[0] = L'\0';
+	wchar_t *title = NULL;
 	if (win != XCB_NONE && ((visible && xcb_ewmh_get_wm_visible_name_reply(ewmh, xcb_ewmh_get_wm_visible_name(ewmh, win), &ewmh_txt_prop, NULL) == 1) || xcb_ewmh_get_wm_name_reply(ewmh, xcb_ewmh_get_wm_name(ewmh, win), &ewmh_txt_prop, NULL) == 1 || xcb_icccm_get_wm_name_reply(dpy, xcb_icccm_get_wm_name(dpy, win), &icccm_txt_prop, NULL) == 1)) {
 		char *src = NULL;
 		size_t title_len = 0;
 		if (ewmh_txt_prop.strings != NULL) {
 			src = ewmh_txt_prop.strings;
-			title_len = MIN(len, ewmh_txt_prop.strings_len);
+			title_len = ewmh_txt_prop.strings_len;
 		} else if (icccm_txt_prop.name != NULL) {
 			src = icccm_txt_prop.name;
-			title_len = MIN(len, icccm_txt_prop.name_len);
+			title_len = icccm_txt_prop.name_len;
 			/* Extract UTF-8 embedded in Compound Text */
 			if (title_len > strlen(CT_UTF8_BEGIN CT_UTF8_END) &&
 			    memcmp(src, CT_UTF8_BEGIN, strlen(CT_UTF8_BEGIN)) == 0 &&
@@ -297,12 +301,16 @@ void get_window_title(xcb_window_t win, wchar_t *title, size_t len)
 			}
 		}
 		if (src != NULL) {
-			title_len = mbsnrtowcs(title, (const char**)&src, title_len, MAXLEN, NULL);
+			title_len = mbsnrtowcs(NULL, (const char**)&src, title_len, 0, NULL);
 			if (title_len == (size_t)-1) {
 				warnx("can't decode the title of 0x%08lX.", (unsigned long)win);
-				title_len = 0;
+			} else {
+				title = realloc(title, (title_len + 1) * sizeof(wchar_t));
+				if (title != NULL) {
+					mbsrtowcs(title, (const char**)&src, title_len, NULL);
+					title[title_len] = L'\0';
+				}
 			}
-			title[title_len] = L'\0';
 		}
 	}
 	if (ewmh_txt_prop.strings != NULL) {
@@ -311,6 +319,7 @@ void get_window_title(xcb_window_t win, wchar_t *title, size_t len)
 	if (icccm_txt_prop.name != NULL) {
 		xcb_icccm_get_text_property_reply_wipe(&icccm_txt_prop);
 	}
+	return title;
 }
 
 void hold(int sig)
