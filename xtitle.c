@@ -177,7 +177,7 @@ void output_title(xcb_window_t win, wchar_t *format, bool escaped, int truncate)
 {
 	wchar_t *title = get_window_title(win);
 	if (title == NULL) {
-		wprintf(FORMAT, L"");
+		print_title(format, L"");
 		goto end;
 	}
 	if (truncate) {
