@@ -177,7 +177,7 @@ void output_title(xcb_window_t win, wchar_t *format, bool escaped, int truncate)
 {
 	wchar_t *title = get_window_title(win);
 	if (title == NULL) {
-		print_title(format, L"");
+		print_title(format, L"", win);
 		goto end;
 	}
 	if (truncate) {
@@ -202,17 +202,17 @@ void output_title(xcb_window_t win, wchar_t *format, bool escaped, int truncate)
 	}
 	if (escaped) {
 		wchar_t *out = expand_escapes(title);
-		print_title(format, out);
+		print_title(format, out, win);
 		free(out);
 	} else {
-		print_title(format, title);
+		print_title(format, title, win);
 	}
 end:
 	fflush(stdout);
 	free(title);
 }
 
-void print_title(wchar_t *format, wchar_t *title)
+void print_title(wchar_t *format, wchar_t *title, xcb_window_t win)
 {
 	if (format == NULL) {
 		wprintf(FORMAT, title);
@@ -230,6 +230,8 @@ void print_title(wchar_t *format, wchar_t *title)
 			} else {
 				if (*spec == L'%' && cur == L's') {
 					wprintf(L"%ls", title);
+				} else if (*spec == L'%' && cur == L'u') {
+					wprintf(L"%u", win);
 				} else if (*spec == L'\\' && cur == L'n') {
 					wprintf(L"\n");
 				} else if (*spec == cur) {
