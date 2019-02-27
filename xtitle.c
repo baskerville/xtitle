@@ -176,6 +176,7 @@ wchar_t* expand_escapes(const wchar_t *src)
 void output_title(xcb_window_t win, wchar_t *format, bool escaped, int truncate)
 {
 	wchar_t *title = get_window_title(win);
+	wchar_t *output = title;
 	if (title == NULL) {
 		print_title(format, L"", win);
 		goto end;
@@ -191,21 +192,21 @@ void output_title(xcb_window_t win, wchar_t *format, bool escaped, int truncate)
 				}
 				title[truncate] = L'\0';
 			} else {
-				title = title + wcslen(title) + truncate;
+				output = title + wcslen(title) + truncate;
 				if (n > 3) {
 					for (int i = 0; i <= 2; i++) {
-						title[i] = L'.';
+						output[i] = L'.';
 					}
 				}
 			}
 		}
 	}
 	if (escaped) {
-		wchar_t *out = expand_escapes(title);
+		wchar_t *out = expand_escapes(output);
 		print_title(format, out, win);
 		free(out);
 	} else {
-		print_title(format, title, win);
+		print_title(format, output, win);
 	}
 end:
 	fflush(stdout);
